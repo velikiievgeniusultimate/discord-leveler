@@ -1,0 +1,11 @@
+name: Build and test
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y qt6-base-dev libpulse-dev cmake g++ pkg-config
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel 2
+      - run: ctest --test-dir build --output-on-failure
+      - run: bash -n install.sh scripts/update.sh scripts/uninstall.sh
