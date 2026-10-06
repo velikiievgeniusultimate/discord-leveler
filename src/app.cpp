@@ -19,6 +19,7 @@
 #include <QGroupBox>
 #include <QFont>
 #include <QSet>
+#include <algorithm>
 QString command(const QStringList &args,bool *ok) {
  QProcess p; p.start("pactl",args);
  bool success=p.waitForFinished(2000)&&p.exitCode()==0&&p.exitStatus()==QProcess::NormalExit;
@@ -74,7 +75,7 @@ App::App() {
  connect(&timer,&QTimer::timeout,this,&App::scan);timer.start(500);
  connect(&worker,&QProcess::readyReadStandardOutput,this,[this]{
   workerData+=worker.readAllStandardOutput();int pos;
-  while((pos=workerData.indexOf('\n'))>=0){auto line=workerData.left(pos);workerData.remove(0,pos+1);auto values=line.split(' ');if(values.size()==3){float in=values[0].toFloat(),out=values[1].toFloat(),gain=values[2].toFloat();inputMeter->setValue(int(in+60));outputMeter->setValue(int(out+60));levels->setText(QString("Вход: %1 dBFS  ·  Выход: %2 dBFS  ·  Усиление: %3 dB").arg(in,0,'f',1).arg(out,0,'f',1).arg(gain,0,'f',1));}}
+  while((pos=workerData.indexOf('\n'))>=0){auto line=workerData.left(pos);workerData.remove(0,pos+1);auto values=line.split(' ');if(values.size()==3){float in=values[0].toFloat(),out=values[1].toFloat(),gain=values[2].toFloat();inputMeter->setValue(std::clamp(int(in+60),0,60));outputMeter->setValue(std::clamp(int(out+60),0,60));levels->setText(QString("Вход: %1 dBFS  ·  Выход: %2 dBFS  ·  Усиление: %3 dB").arg(in,0,'f',1).arg(out,0,'f',1).arg(gain,0,'f',1));}}
  });
  connect(&worker,qOverload<int,QProcess::ExitStatus>(&QProcess::finished),this,[this](int,QProcess::ExitStatus){if(on&&!switching){errorText="Обработка остановилась: "+QString::fromUtf8(worker.readAllStandardError()).trimmed();setEnabled(false);tray.showMessage("Discord Leveler",errorText,QSystemTrayIcon::Warning);}});
  connect(qApp,&QCoreApplication::aboutToQuit,this,[this]{quitting=true;setEnabled(false);});

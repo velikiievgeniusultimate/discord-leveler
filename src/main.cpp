@@ -13,6 +13,7 @@ int main(int argc,char **argv){
  const QString verb=app.arguments().value(1,"--settings").mid(2);
  QLocalSocket socket;socket.connectToServer("discord-leveler");
  if(socket.waitForConnected(250)){socket.write(verb.toUtf8());socket.waitForBytesWritten(1000);return 0;}
+ if(verb=="quit") return 0;
  QLockFile lock(QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation)+"/discord-leveler.lock");lock.setStaleLockTime(0);
  if(!lock.tryLock()){fprintf(stderr,"Discord Leveler already running\n");return 1;}
  QLocalServer::removeServer("discord-leveler");
