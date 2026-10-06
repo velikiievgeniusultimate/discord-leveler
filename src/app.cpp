@@ -134,7 +134,17 @@ void App::setEnabled(bool value){
 }
 void App::restoreRoutes(){
  auto streams=list("sink-inputs");QString fallback=command({"get-default-sink"});
- for(auto v:streams){auto s=v.toObject();QString id=QString::number(s.value("index").toInt());auto old=originals.value(identity(s)).toObject();if(old.value("identity").toString()!=identity(s))continue;bool ok;command({"move-sink-input",id,old.value("sink").toString()},&ok);if(!ok&&!fallback.isEmpty()&&fallback!=sinkName)command({"move-sink-input",id,fallback});}
+ for(auto v:streams){
+  auto s=v.toObject();if(!discordStream(s))continue;
+  QString id=QString::number(s.value("index").toInt());
+  auto old=originals.value(identity(s)).toObject();
+  QString target;
+  if(old.value("identity").toString()==identity(s))target=old.value("sink").toString();
+  else if(sinkById(s.value("sink").toInt())==sinkName)target=outputDevice;
+  if(target.isEmpty()||target==sinkName)continue;
+  bool ok;command({"move-sink-input",id,target},&ok);
+  if(!ok&&!fallback.isEmpty()&&fallback!=sinkName)command({"move-sink-input",id,fallback});
+ }
 }
 void App::scan(){
  if(!on){status->setText(errorText.isEmpty()?"Off · Discord играет напрямую в наушники":errorText);return;}
@@ -151,6 +161,9 @@ void App::scan(){
  saveRoutes();
  for(auto v:streams){auto s=v.toObject();if(!discordStream(s))continue;count++;
   QString id=QString::number(s.value("index").toInt());
+  if(s.value("sink").toInt()==sinkId&&!originals.contains(identity(s))){
+   originals[identity(s)]=QJsonObject{{"sink",outputDevice},{"identity",identity(s)}};saveRoutes();
+  }
   if(s.value("sink").toInt()!=sinkId){
    const QString original=sinkById(s.value("sink").toInt());if(original.isEmpty())continue;
    originals[identity(s)]=QJsonObject{{"sink",original},{"identity",identity(s)}};saveRoutes();
