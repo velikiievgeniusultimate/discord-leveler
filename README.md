@@ -58,4 +58,6 @@ CLI: `--settings`, `--tray`, `--on`, `--off`, `--toggle`, `--quit`. D-Bus interf
 
 PipeWire/PulseAudio may remember previous per-application routing; startup cleanup removes stale private sinks. Explicit user routing of Discord while On is overridden until Off. Output follows changes to the system default for the leveler's own stream only.
 
+New releases are published automatically when a `v*` Git tag is pushed. The release workflow builds and tests before uploading the source archive, checksum and installer.
+
 MIT license.

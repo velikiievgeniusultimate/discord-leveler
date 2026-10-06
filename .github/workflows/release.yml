@@ -1,0 +1,27 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y qt6-base-dev libpulse-dev cmake g++ pkg-config
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel 2 && ctest --test-dir build --output-on-failure
+      - run: bash -n install.sh scripts/update.sh scripts/uninstall.sh
+      - name: Package source and installer
+        run: |
+          mkdir dist
+          git archive --format=tar.gz --prefix=discord-leveler/ -o dist/discord-leveler-source.tar.gz HEAD
+          cp install.sh dist/install.sh
+          cd dist
+          sha256sum discord-leveler-source.tar.gz > SHA256SUMS
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/discord-leveler-source.tar.gz dist/SHA256SUMS dist/install.sh --verify-tag --title "Discord Leveler $RELEASE_TAG" --notes-file .github/release-notes.md
