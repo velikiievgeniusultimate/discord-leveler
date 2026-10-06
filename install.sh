@@ -21,9 +21,9 @@ if ! command -v cmake >/dev/null || ! command -v g++ >/dev/null || ! command -v 
     echo 'Installing Qt 6, build tools and PulseAudio client libraries (PipeWire-compatible).'
     if command -v pacman >/dev/null; then
         if command -v pkexec >/dev/null; then
-            pkexec pacman -S --needed cmake gcc make pkgconf qt6-base libpulse
+            pkexec pacman -S --needed --noconfirm cmake gcc make pkgconf qt6-base libpulse
         else
-            sudo pacman -S --needed cmake gcc make pkgconf qt6-base libpulse
+            sudo pacman -S --needed --noconfirm cmake gcc make pkgconf qt6-base libpulse
         fi
     elif command -v apt-get >/dev/null; then
         sudo apt-get update
